@@ -38,7 +38,7 @@ listen(msg => {
         world.center()
         if (msg.world.id && msg.world.distances) {
             // each incoming message is a node with all it's peers
-            let particles = particlize(msg)
+            particlize(msg)
         }
     }
     else if (typeof msg === 'object' && typeof msg.removed === 'string') {
@@ -60,6 +60,7 @@ function particlize(msg) {
     let inWorld = world.particles.findIndex(world_particle => world_particle.id === msg.world.id)
     if(inWorld === -1) {
         let particle = new Particle(world.p, world.self.position.x, world.self.position.y, msg.world.distances[world.self.id].distance, 10, msg.world.id)
+        particle.arrive()
         world.particles.push(particle)
     }
     else {
@@ -74,9 +75,6 @@ function add_particle(particle) {
     world.particles.push(particle)
 }
 
-function update_particle(particle, index) {
-    world.particles[index].distance = particle.distance
-}
 function remove_particle(index) {
     world.particles.splice(index, 1)
 }

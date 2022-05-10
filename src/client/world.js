@@ -11,7 +11,7 @@ class World {
         this.vec = null
     }
 
-    showId(id, x, y){
+    showId(id, x, y) {
         this.p.fill('#FFF')
         this.p.text(id, x, y)
     }
@@ -38,21 +38,19 @@ class World {
         this.p.ellipse(particle.position.x, particle.position.y, particle.size, particle.size)
     }
     center() {
-        this.self.position = {}
-        this.self.position.x = this.p.width / 2
-        this.self.position.y = this.p.height / 2
+        this.self.position = this.p.createVector(this.p.width / 2, this.p.height / 2)
     }
 
     spin() {
         this.center()
         if (this.self && this.self.position && typeof this.self.size === 'number') this.display(this.self)
-        this.showId("Self " + this.self.id, 10, 10 )
+        this.showId("Self " + this.self.id, 10, 10)
         this.particles.forEach((particle, index) => {
             if (particle) {
-                this.showId(particle.id, 10, 30 + (10 *index))
+                this.showId(particle.id, 10, 30 + (20 * index))
                 this.colorize()
                 particle.arrive()
-                particle.separate(this.particles.filter(other => other.id !== particle.id))
+                particle.separate([...this.particles.filter(other => other.id !== particle.id), this.self])
                 particle.update()
                 if (particle.position && particle.position.x && particle.position.y && typeof particle.size === 'number' && particle.distance) {
                     this.display(particle)
@@ -71,19 +69,20 @@ class Particle {
         this.distance = distance
         this.size = size
         this.id = id
+        this.scaler = 10
         this.maxspeed = 2 // Maximum speed
-        this.maxforce = 0.2 // Maximum steering force
+        this.maxforce = 0.3 // Maximum steering force
         this.acceleration = this.p.createVector(0, 0)
         this.velocity = this.p.createVector(0, 0)
-        this.target = this.p.createVector(x + distance, y + distance)
+        this.target = this.p.createVector(x + (this.distance * this.scaler) * this.p.random(-1, 1) , y + (this.distance * this.scaler) * this.p.random(-1, 1))
     }
 
     separate(others) {
-        let desiredseparation = this.size * 10
         let sum = this.p.createVector()
         let count = 0
         for (let i = 0; i < others.length; i++) {
             let d = this.p.Vector.dist(this.position, others[i].position)
+            let desiredseparation = this.size + others[i].size
             if ((d > 0) && (d < desiredseparation)) {
                 // Calculate vector pointing away from neighbor
                 let diff = this.p.Vector.sub(this.position, others[i].position)
@@ -107,21 +106,22 @@ class Particle {
     }
 
     arrive(target) {
+        
         let desired = this.p.Vector.sub(this.target, this.position) // A vector pointing from the location to the target
         let d = desired.mag()
         // Scale with arbitrary damping within 100 pixels
         if (d < 100) {
-          var m = this.p.map(d, 0, 100, 0, this.maxspeed)
-          desired.setMag(m)
+            var m = this.p.map(d, 0, 100, 0, this.maxspeed)
+            desired.setMag(m)
         } else {
-          desired.setMag(this.maxspeed)
+            desired.setMag(this.maxspeed)
         }
-    
+
         // Steering = Desired minus Velocity
         let steer = p5.Vector.sub(desired, this.velocity)
         steer.limit(this.maxforce)  // Limit to maximum steering force
         this.acceleration.add(steer)
-      }
+    }
 
     update() {
         // Update velocity

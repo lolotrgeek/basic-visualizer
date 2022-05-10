@@ -9,6 +9,7 @@ function startsketch() {
     const sketch = p => {
         world.p = p
         world.p.Vector = p5.Vector
+        console.log(p)
         p.setup = function () {
             cnv = p.createCanvas(div.offsetWidth, div.offsetHeight)
             cnv.style('display', 'block')
@@ -32,54 +33,45 @@ function stopsketch(world) {
 startsketch()
 
 listen(msg => {
-    if (typeof msg === 'object') {
-
-        if (typeof msg.world === 'object') {
-            if (msg.world.id && msg.world.distances) {
-
-                let self = {}
-                self.id = msg.world.id
-                self.size = 20
-
-                world.self = self
-                world.center()
-
-                let particleMap = Object.keys(msg.world.distances).map(key => new Particle(world.p, self.position.x, self.position.y, msg.world.distances[key].distance, 10, key, []))
-                let particles = particleMap.map((particle, index) => {
-                    particle.others = particleMap.filter(other => other.id !== particle.id)
-                    // particle.others = particleMap
-                    return particle
-                })
-
-                // remove particles
-                world.particles.forEach((world_particle, inWorld) => {
-                    if (world_particle) {
-                        let outWorld = particles.findIndex(particle => world_particle.id === particle.id)
-                        if (outWorld === -1) remove_particle(inWorld)
-                    }
-                })
-
-                // update or add new particles
-                particles.forEach(particle => {
-                    if (particle) {
-                        let inWorld = world.particles.findIndex(world_particle => world_particle.id === particle.id)
-                        if (inWorld > -1) update_particle(particle, inWorld)
-                        else add_particle(particle)
-                    }
-                })
-
-            }
+    if (typeof msg === 'object' && typeof msg.self === 'string' && typeof msg.world === 'object') {
+        world.self = { id: msg.self, size: 20 }
+        world.center()
+        if (msg.world.id && msg.world.distances) {
+            // each incoming message is a node with all it's peers
+            let particles = particlize(msg)
         }
-
+    }
+    else if (typeof msg === 'object' && typeof msg.removed === 'string') {
+        let inWorld = world.particles.findIndex(world_particle => world_particle.id === msg.removed)
+        if(inWorld > -1) remove_particle(inWorld)
     }
     else if (msg === "CLOSED") {
         stopsketch(world) // from sketch.js
     }
+    else {
+        console.log(msg)
+    }
 })
 
+function particlize(msg) {
+    // let particleMap = Object.keys(msg.world.distances).map(key => {
+    //     return new Particle(world.p, world.self.position.x, world.self.position.y, msg.world.distances[key].distance, 10, key, [])
+    // })
+    let inWorld = world.particles.findIndex(world_particle => world_particle.id === msg.world.id)
+    if(inWorld === -1) {
+        let particle = new Particle(world.p, world.self.position.x, world.self.position.y, msg.world.distances[world.self.id].distance, 10, msg.world.id)
+        world.particles.push(particle)
+    }
+    else {
+        // update particle
+        let inWorld = world.particles.findIndex(world_particle => world_particle.id === msg.world.id)
+        if (inWorld > -1) world.particles[inWorld].distance = msg.world.distances[world.self.id].distance
+    }
+
+}
+
 function add_particle(particle) {
-    world.particles = [...world.particles, particle]
-    return
+    world.particles.push(particle)
 }
 
 function update_particle(particle, index) {

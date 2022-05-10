@@ -11,6 +11,11 @@ class World {
         this.vec = null
     }
 
+    showId(id, x, y){
+        this.p.fill('#FFF')
+        this.p.text(id, x, y)
+    }
+
     showdistance(position, objective, text) {
         this.p.push()
         this.p.fill('#FFF')
@@ -41,10 +46,13 @@ class World {
     spin() {
         this.center()
         if (this.self && this.self.position && typeof this.self.size === 'number') this.display(this.self)
-        this.particles.forEach(particle => {
+        this.showId("Self " + this.self.id, 10, 10 )
+        this.particles.forEach((particle, index) => {
             if (particle) {
+                this.showId(particle.id, 10, 30 + (10 *index))
                 this.colorize()
-                particle.separate()
+                particle.arrive()
+                particle.separate(this.particles.filter(other => other.id !== particle.id))
                 particle.update()
                 if (particle.position && particle.position.x && particle.position.y && typeof particle.size === 'number' && particle.distance) {
                     this.display(particle)
@@ -57,31 +65,30 @@ class World {
 }
 
 class Particle {
-    constructor(p, x, y, distance, size, id, others) {
+    constructor(p, x, y, distance, size, id) {
         this.p = p
         this.position = this.p.createVector(x, y)
         this.distance = distance
         this.size = size
         this.id = id
-        this.others = others
-        this.maxspeed = 3// Maximum speed
+        this.maxspeed = 2 // Maximum speed
         this.maxforce = 0.2 // Maximum steering force
         this.acceleration = this.p.createVector(0, 0)
         this.velocity = this.p.createVector(0, 0)
+        this.target = this.p.createVector(x + distance, y + distance)
     }
 
     separate(others) {
-        let desiredseparation = this.size * 2
+        let desiredseparation = this.size * 10
         let sum = this.p.createVector()
         let count = 0
-        // For every boid in the system, check if it's too close
-        for (let i = 0; i < this.others.length; i++) {
-            let d = this.p.Vector.dist(this.position, this.others[i].position)
-            if (d < desiredseparation) {
+        for (let i = 0; i < others.length; i++) {
+            let d = this.p.Vector.dist(this.position, others[i].position)
+            if ((d > 0) && (d < desiredseparation)) {
                 // Calculate vector pointing away from neighbor
-                let diff = this.p.Vector.sub(this.position, this.others[i].position)
+                let diff = this.p.Vector.sub(this.position, others[i].position)
                 diff.normalize()
-                diff.div(d === 0 ? 1: d) // Weight by distance
+                diff.div(d) // Weight by distance
                 sum.add(diff)
                 count++ // Keep track of how many
             }
@@ -98,6 +105,23 @@ class Particle {
             this.acceleration.add(steer)
         }
     }
+
+    arrive(target) {
+        let desired = this.p.Vector.sub(this.target, this.position) // A vector pointing from the location to the target
+        let d = desired.mag()
+        // Scale with arbitrary damping within 100 pixels
+        if (d < 100) {
+          var m = this.p.map(d, 0, 100, 0, this.maxspeed)
+          desired.setMag(m)
+        } else {
+          desired.setMag(this.maxspeed)
+        }
+    
+        // Steering = Desired minus Velocity
+        let steer = p5.Vector.sub(desired, this.velocity)
+        steer.limit(this.maxforce)  // Limit to maximum steering force
+        this.acceleration.add(steer)
+      }
 
     update() {
         // Update velocity

@@ -4,10 +4,15 @@ const { listen, send } = require('./src/router')
 const { Node } = require('basic')
 
 const observer = new Node()
+let id =  observer.core.getIdentity()
 
 observer.identifier = message => {
     // console.log(message)
-    send("WORLD", { world: message })
+    send("WORLD", { self: id, world: message })
+}
+
+observer.removed = peer => {
+    send("WORLD", {removed: peer})
 }
 
 let sender

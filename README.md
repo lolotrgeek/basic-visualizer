@@ -4,4 +4,9 @@ See a graphical map of the [basic network](https://github.com/lolotrgeek/Basic) 
 ## Usage
 ```
 node main
+
+// to show some nodes run ping_test in basic network repo tests dir
 ```
+
+## Todo
+- update distances on existing nodes

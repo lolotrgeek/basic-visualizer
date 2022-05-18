@@ -9,4 +9,3 @@ node main
 ```
 
 ## Todo
-- update distances on existing nodes

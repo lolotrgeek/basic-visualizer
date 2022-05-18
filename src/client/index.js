@@ -44,7 +44,7 @@ listen(msg => {
     }
     else if (typeof msg === 'object' && typeof msg.removed === 'string') {
         let inWorld = world.particles.findIndex(world_particle => world_particle.id === msg.removed)
-        if(inWorld > -1) remove_particle(inWorld)
+        if (inWorld > -1) remove_particle(inWorld)
     }
     else if (msg === "CLOSED") {
         stopsketch(world) // from sketch.js
@@ -55,21 +55,28 @@ listen(msg => {
 })
 
 function particlize(msg) {
-    // add particle
     let inWorld = world.particles.findIndex(world_particle => world_particle.id === msg.world.id)
-    if(inWorld === -1) {
-        let particle = new Particle(world.p, world.self.position.x, world.self.position.y, msg.world.distances[world.self.id].distance, 10, msg.world.id)
-        particle.arrive()
-        world.particles.push(particle)
+    if (inWorld === -1) {
+        add_particle(msg)
     }
-    else {
-        // update particle
-        let inWorld = world.particles.findIndex(world_particle => world_particle.id === msg.world.id)
-        if (inWorld > -1) world.particles[inWorld].distance = msg.world.distances[world.self.id].distance
+    else if (inWorld > -1) {
+        // let inWorld = world.particles.findIndex(world_particle => world_particle.id === msg.world.id)
+        update_particle(msg, inWorld)
     }
 
 }
 
-function remove_particle(index) {
-    world.particles.splice(index, 1)
+function add_particle(msg) {
+    let particle = new Particle(world.p, world.self.position.x, world.self.position.y, msg.world.distances[world.self.id].distance, 10, msg.world.id)
+    particle.arrive()
+    world.particles.push(particle)
+}
+
+function remove_particle(inWorld) {
+    world.particles.splice(inWorld, 1)
+}
+
+function update_particle(msg, inWorld) {
+    world.particles[inWorld].previous_distance = world.particles[inWorld].distance
+    world.particles[inWorld].distance = msg.world.distances[world.self.id].distance
 }

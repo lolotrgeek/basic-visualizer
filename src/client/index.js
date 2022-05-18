@@ -1,7 +1,7 @@
 let div = document.getElementById("sketch")
 let x = div.offsetWidth
 let y = div.offsetHeight
-let scalar = 10
+let scalar = 20
 let world = new World({}, [])
 let cnv
 
@@ -37,9 +37,10 @@ listen(msg => {
         world.self = { id: msg.self, size: 20 }
         world.center()
         if (msg.world.id && msg.world.distances) {
-            // each incoming message is a node with all it's peers
+            // each incoming message is a node with all it's peer distances
             particlize(msg)
         }
+        // TODO: change particle color when message is received
     }
     else if (typeof msg === 'object' && typeof msg.removed === 'string') {
         let inWorld = world.particles.findIndex(world_particle => world_particle.id === msg.removed)
@@ -54,9 +55,7 @@ listen(msg => {
 })
 
 function particlize(msg) {
-    // let particleMap = Object.keys(msg.world.distances).map(key => {
-    //     return new Particle(world.p, world.self.position.x, world.self.position.y, msg.world.distances[key].distance, 10, key, [])
-    // })
+    // add particle
     let inWorld = world.particles.findIndex(world_particle => world_particle.id === msg.world.id)
     if(inWorld === -1) {
         let particle = new Particle(world.p, world.self.position.x, world.self.position.y, msg.world.distances[world.self.id].distance, 10, msg.world.id)
@@ -69,10 +68,6 @@ function particlize(msg) {
         if (inWorld > -1) world.particles[inWorld].distance = msg.world.distances[world.self.id].distance
     }
 
-}
-
-function add_particle(particle) {
-    world.particles.push(particle)
 }
 
 function remove_particle(index) {

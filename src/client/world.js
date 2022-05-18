@@ -49,7 +49,7 @@ class World {
             if (particle) {
                 this.showId(particle.id, 10, 30 + (20 * index))
                 this.colorize()
-                particle.arrive()
+                particle.arrive() //TODO: set target to change node distance along vector
                 particle.separate([...this.particles.filter(other => other.id !== particle.id), this.self])
                 particle.update()
                 if (particle.position && particle.position.x && particle.position.y && typeof particle.size === 'number' && particle.distance) {
@@ -106,8 +106,7 @@ class Particle {
     }
 
     arrive(target) {
-        
-        let desired = this.p.Vector.sub(this.target, this.position) // A vector pointing from the location to the target
+        let desired = this.p.Vector.sub(target ? target: this.target, this.position) // A vector pointing from the location to the target
         let d = desired.mag()
         // Scale with arbitrary damping within 100 pixels
         if (d < 100) {

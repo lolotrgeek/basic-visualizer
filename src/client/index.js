@@ -33,11 +33,10 @@ function stopsketch(world) {
 startsketch()
 
 listen(msg => {
-    if (typeof msg === 'object' && typeof msg.self === 'string' && typeof msg.world === 'object') {
-        world.self = { id: msg.self, size: 20 }
-        world.center()
-        if (msg.world.id && msg.world.distances) {
-            // each incoming message is a node with all it's peer distances
+    
+    if (typeof msg === 'object' && typeof msg.world === 'object') {
+        if (msg.world.state && msg.world.from) {
+            // each incoming message is a node with all it's peer states
             particlize(msg)
         }
         // TODO: change particle color when message is received
@@ -55,7 +54,7 @@ listen(msg => {
 })
 
 function particlize(msg) {
-    let inWorld = world.particles.findIndex(world_particle => world_particle.id === msg.world.id)
+    let inWorld = world.particles.findIndex(world_particle => world_particle.id === msg.world.from)
     if (inWorld === -1) {
         add_particle(msg)
     }
@@ -67,7 +66,7 @@ function particlize(msg) {
 }
 
 function add_particle(msg) {
-    let particle = new Particle(world.p, world.self.position.x, world.self.position.y, msg.world.distances[world.self.id].distance, 10, msg.world.id)
+    let particle = new Particle(world.p, msg.world.state, 10, msg.world.from)
     particle.arrive()
     world.particles.push(particle)
 }
@@ -77,6 +76,6 @@ function remove_particle(inWorld) {
 }
 
 function update_particle(msg, inWorld) {
-    world.particles[inWorld].previous_distance = world.particles[inWorld].distance
-    world.particles[inWorld].distance = msg.world.distances[world.self.id].distance
+    world.particles[inWorld].previous_state = world.particles[inWorld].state
+    world.particles[inWorld].state = msg.world.state
 }

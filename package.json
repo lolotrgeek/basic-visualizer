@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "basic": "github:lolotrgeek/Basic",
+    "basic": "github:lolotrgeek/Basic#process",
     "cors": "^2.8.5",
     "express": "^4.18.1",
     "reconnecting-websocket": "^4.4.0",

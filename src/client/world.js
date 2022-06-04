@@ -11,7 +11,7 @@ class World {
         this.vec = null
     }
 
-    showId(id, x, y) {
+    listId(id, x, y) {
         this.p.fill('#FFF')
         this.p.text(id, x, y)
     }
@@ -21,13 +21,15 @@ class World {
         this.p.text( "Particles: " + this.particles.length, x, y)
     }
 
-    showState(x,y, state, id) {
+    showId(x,y, id) {
+        this.p.fill('#000')
         this.p.text(id, x, y)
-        this.p.text(state, x, y-2)
     }
 
-    colorize() {
+    colorize(particle) {
         let color = "#FFF"
+        if(particle.state === '1') color = "#ff4d4f"
+        if(particle.previous_state === particle.state) color = "#ffe14d"
         this.p.fill(color)
     }
 
@@ -41,14 +43,14 @@ class World {
         this.showParticleCount(this.p.width - 100, 10)
         this.particles.forEach((particle, index) => {
             if (particle) {
-                this.showId(particle.id + "  |  State: " + particle.state, 10, 30 + (20 * index))
-                this.colorize()
+                this.listId(particle.id + "  |  State: " + particle.state, 10, 30 + (20 * index))
+                this.colorize(particle)
                 particle.arrive()
                 particle.separate([...this.particles.filter(other => other.id !== particle.id)])
                 particle.update()
                 if (particle.position && particle.position.x && particle.position.y && typeof particle.size === 'number' && particle.state) {
                     this.display(particle)
-                    this.showState(particle.position.x, particle.position.y, particle.state)
+                    this.showId(particle.position.x, particle.position.y, particle.id)
                 }   
             }
 
@@ -64,7 +66,7 @@ class Particle {
         this.previous_state = 0
         this.size = size
         this.id = id
-        this.scaler = 10
+        this.scaler = this.size
         this.maxspeed = 2 // Maximum speed
         this.maxforce = 0.3 // Maximum steering force
         this.acceleration = this.p.createVector(0, 0)

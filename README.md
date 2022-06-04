@@ -9,4 +9,4 @@ node relay
 ```
 
 ## Todo
-- main and relay run in forked processes
+- have main run `server` and `relay` in forked processes

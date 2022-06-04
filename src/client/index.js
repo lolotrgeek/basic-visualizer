@@ -66,7 +66,7 @@ function particlize(msg) {
 }
 
 function add_particle(msg) {
-    let particle = new Particle(world.p, msg.world.state, 10, msg.world.from)
+    let particle = new Particle(world.p, msg.world.state, 30, msg.world.from)
     particle.arrive()
     world.particles.push(particle)
 }

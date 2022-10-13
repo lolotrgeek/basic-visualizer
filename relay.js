@@ -1,29 +1,19 @@
 require('./src/functions')
 LOGGING = 'debug'
 const { listen, send } = require('./src/router')
-const { Node } = require('basic')
+const { Node } = require('basic-messaging')
 
 const node = new Node("observer")
-let id = node.core.getIdentity()
 let peers = []
 
-function listener() {
-    let new_peers = Object.values(node.core.getPeers()).map(peer => peer.name).filter(peer => peer)
-    if (new_peers.length > peers) {
-        console.log("New Peers", new_peers)
-        node.core.removeAllListeners()
-        node.listen("*", (state, from) => {
-            if (isNaN(parseInt(from)) === false) {
-                console.log(`Heard: ${state}, From: ${from}`)
-                send("WORLD", { world: { state, from } })
-            }
-        })
-        peers = new_peers
+node.listen("*", message => {
+    if (typeof message === 'object' && message.state && isNaN(parseInt(message.from)) === false) {
+        console.log(`Heard: ${message.state}, From: ${message.from}`)
+        send("WORLD", { world: message })
     }
-}
+})
 
-
-node.core.on("disconnect", (id, name) => {
+node.listen("disconnect", (id, name) => {
     send("WORLD", { removed: name })
 })
 
@@ -34,4 +24,3 @@ listen(msg => {
     }
 })
 
-setInterval(listener, 2000)

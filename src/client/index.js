@@ -45,9 +45,9 @@ listen(msg => {
         let inWorld = world.particles.findIndex(world_particle => world_particle.id === msg.removed)
         if (inWorld > -1) remove_particle(inWorld)
     }
-    else if (msg === "CLOSED") {
-        stopsketch(world) // from sketch.js
-    }
+    // else if (msg === "CLOSED") {
+    //     stopsketch(world) // from sketch.js
+    // }
     else {
         console.log(msg)
     }
